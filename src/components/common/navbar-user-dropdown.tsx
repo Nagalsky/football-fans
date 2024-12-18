@@ -1,8 +1,9 @@
 "use client";
 
 import { logout } from "@/app/(auth)/actions";
-import { useSession } from "@/app/providers/session-provider";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/providers/session-provider";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, LogOutIcon, Monitor, Moon, Sun, UserIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -18,7 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import NavbarUserAvatar from "./navbar-user-avatar";
+import UserAvatar from "./user-avatar";
 
 interface UserDropdownProps {
   className?: string;
@@ -29,11 +30,17 @@ export default function UserDropdown({ className }: UserDropdownProps) {
 
   const { theme, setTheme } = useTheme();
 
+  const queryClient = useQueryClient();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className={cn("flex-none rounded-full", className)}>
-          <NavbarUserAvatar data={user} />
+          <UserAvatar
+            avatarUrl={user.avatarUrl}
+            username={user.username}
+            className="size-40"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -73,6 +80,7 @@ export default function UserDropdown({ className }: UserDropdownProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
+            queryClient.clear();
             logout();
           }}
         >

@@ -1,7 +1,9 @@
+import { Toaster } from "@/components/ui/toaster";
+import ReactQueryProvider from "@/providers/react-query-provider";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { ThemeProvider } from "../providers/theme-provider";
 import "./globals.css";
-import { ThemeProvider } from "./providers/theme-provider";
 
 const robotoSlabVariable = localFont({
   src: [
@@ -71,14 +73,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${robotoSlabVariable.variable} antialiased`}>
         <main>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
+          </ReactQueryProvider>
+          <Toaster />
         </main>
       </body>
     </html>
