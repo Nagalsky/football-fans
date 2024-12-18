@@ -2,7 +2,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PostsPage } from "@/types/post.type";
 import {
   InfiniteData,
-  QueryKey,
+  QueryFilters,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -15,20 +15,20 @@ export function useSubmitPostMutation() {
   const mutation = useMutation({
     mutationFn: submitPost,
     onSuccess: async (newPost) => {
-      const queryKey: QueryKey = ["post-feed", "for-you"];
+      const queryFilter: QueryFilters = { queryKey: ["post-feed", "for-you"] };
 
-      await queryClient.cancelQueries({
-        queryKey,
-      });
+      await queryClient.cancelQueries(queryFilter);
 
-      queryClient.setQueryData<InfiniteData<PostsPage, string | null>>(
-        queryKey,
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-expect-error
+        queryFilter,
         (oldData) => {
-          if (oldData) {
-            const firstPage = oldData.pages[0];
+          const firstPage = oldData?.pages[0];
 
+          if (firstPage) {
             return {
-              ...oldData,
+              pageParams: oldData.pageParams,
               pages: [
                 {
                   posts: [newPost, ...firstPage.posts],
@@ -38,12 +38,11 @@ export function useSubmitPostMutation() {
               ],
             };
           }
-          return oldData;
         },
       );
 
       queryClient.invalidateQueries({
-        queryKey,
+        queryKey: queryFilter.queryKey,
         predicate(query) {
           return !query.state.data;
         },

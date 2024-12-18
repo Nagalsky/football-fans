@@ -2,17 +2,28 @@ import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { formatNumber } from "@/lib/utils";
 import { userDataSelect } from "@/types/post.type";
-import { Loader2 } from "lucide-react";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Button } from "../ui/button";
+import { Skeleton } from "../ui/skeleton";
 import UserAvatar from "./user-avatar";
 
 export default function TrendsSidebar() {
   return (
     <div className="sticky top-[5.25rem] hidden h-fit w-72 flex-none space-y-5 md:block lg:w-80">
-      <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
+      <Suspense
+        fallback={
+          <div className="space-y-5">
+            <div className="animate-pulse rounded-2xl bg-card p-5 shadow-sm">
+              <Skeleton className="h-20 w-full rounded" />
+            </div>
+            <div className="animate-pulse rounded-2xl bg-card p-5 shadow-sm">
+              <Skeleton className="h-20 w-full rounded" />
+            </div>
+          </div>
+        }
+      >
         <WhoToFollow />
         <TrendingTopics />
       </Suspense>
