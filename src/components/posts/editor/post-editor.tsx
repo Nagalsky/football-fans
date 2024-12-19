@@ -143,7 +143,7 @@ export default function PostEditor() {
         <Button
           onClick={onSubmit}
           isLoading={mutation.isPending}
-          disabled={!input.trim()}
+          disabled={!input.trim() || mutation.isPending}
           className="min-w-20"
         >
           Post

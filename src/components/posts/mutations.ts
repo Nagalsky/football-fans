@@ -1,7 +1,8 @@
 import { useToast } from "@/hooks/use-toast";
-import { PostData, PostsPage } from "@/types/post.type";
+import { PostsPage } from "@/types/post.type";
 import {
   InfiniteData,
+  Query,
   QueryFilters,
   useMutation,
   useQueryClient,
@@ -18,28 +19,34 @@ export function useDeletePostMutation() {
   const mutation = useMutation({
     mutationFn: deletePost,
     onSuccess: async (deletedPost) => {
-      const queryFilter: QueryFilters = { queryKey: ["post-feed"] };
+      const queryFilter: QueryFilters<InfiniteData<PostsPage, string | null>> =
+        {
+          queryKey: ["post-feed"],
+          predicate: (query: Query<InfiniteData<PostsPage, string | null>>) =>
+            query.queryKey.includes("post-feed"),
+        };
 
       await queryClient.cancelQueries(queryFilter);
 
       queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-expect-errors
         queryFilter,
         (oldData) => {
-          if (!oldData) return;
+          if (!oldData) return undefined;
 
           return {
             pageParams: oldData.pageParams,
-            pages: oldData.pages.map(
-              (page: { nextCursor: string; posts: PostData[] }) => ({
-                nextCursor: page.nextCursor,
-                posts: page.posts.filter((p) => p.id !== deletedPost.id),
-              }),
-            ),
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.filter((p) => p.id !== deletedPost.id),
+            })),
           };
         },
       );
+
+      queryClient.invalidateQueries({
+        ...queryFilter,
+        predicate: (query) => !query.state.data,
+      });
 
       toast({
         description: "Post deleted",
