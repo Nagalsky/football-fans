@@ -1,8 +1,11 @@
 import { Toaster } from "@/components/ui/toaster";
 import ReactQueryProvider from "@/providers/react-query-provider";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { extractRouterConfig } from "uploadthing/server";
 import { ThemeProvider } from "../providers/theme-provider";
+import { fileRouter } from "./api/uploadthing/core";
 import "./globals.css";
 
 const robotoSlabVariable = localFont({
@@ -73,6 +76,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${robotoSlabVariable.variable} antialiased`}>
         <main>
+          <NextSSRPlugin routerConfig={extractRouterConfig(fileRouter)} />
           <ReactQueryProvider>
             <ThemeProvider
               attribute="class"

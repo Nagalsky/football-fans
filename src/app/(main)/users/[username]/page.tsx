@@ -1,10 +1,11 @@
 import { validateRequest } from "@/auth";
+import EditProfileDialog from "@/components/common/edit-profile-dialog";
 import FollowButton from "@/components/common/follow-button";
 import FollowerCount from "@/components/common/follower-count";
+import Linkify from "@/components/common/linkify";
 import TrendsSidebar from "@/components/common/trends-sidebar";
 import UserAvatar from "@/components/common/user-avatar";
 import UserPosts from "@/components/common/user-posts";
-import { Button } from "@/components/ui/button";
 import prisma from "@/lib/prisma";
 import { formatNumber } from "@/lib/utils";
 import { FollowerInfo } from "@/types/follower.type";
@@ -15,7 +16,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 interface PageProps {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }
 
 const getUser = cache(async (username: string, loggedInUserId: string) => {
@@ -34,9 +35,11 @@ const getUser = cache(async (username: string, loggedInUserId: string) => {
   return user;
 });
 
-export async function generateMetadata({
-  params: { username },
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
+
+  const { username } = params;
+
   const { user: loggedInUser } = await validateRequest();
 
   if (!loggedInUser) return {};
@@ -48,7 +51,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params: { username } }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
+
+  const { username } = params;
+
   const { user: loggedInUser } = await validateRequest();
 
   if (!loggedInUser) {
@@ -91,16 +98,18 @@ async function UserProfile({ user, loggedInUserId }: UserProfileProps) {
   };
 
   return (
-    <div className="h-fit w-full space-y-5 rounded-2xl bg-card p-5 shadow-sm">
+    <div className="relative h-fit w-full space-y-5 rounded-2xl bg-card p-5 shadow-sm">
       <UserAvatar
         avatarUrl={user.avatarUrl}
         username={user.username}
-        className="size-[250]"
+        className="mx-auto size-[180px] sm:size-[250px]"
       />
       <div className="flex flex-wrap gap-3 sm:flex-nowrap">
         <div className="me-auto space-y-3">
           <div>
-            <h1 className="text-3xl font-bold">{user.displayName}</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              {user.displayName}
+            </h1>
             <div className="text-muted-foreground">@{user.username}</div>
           </div>
           <div>Member since {formatDate(user.createdAt, "MMM d, yyyy")}</div>
@@ -115,7 +124,7 @@ async function UserProfile({ user, loggedInUserId }: UserProfileProps) {
           </div>
         </div>
         {user.id === loggedInUserId ? (
-          <Button>Edit profile</Button>
+          <EditProfileDialog user={user} />
         ) : (
           <FollowButton userId={user.id} initialState={followerInfo} />
         )}
@@ -123,9 +132,11 @@ async function UserProfile({ user, loggedInUserId }: UserProfileProps) {
       {user.bio && (
         <>
           <hr />
-          <div className="overflow-hidden whitespace-pre-line break-words">
-            {user.bio}
-          </div>
+          <Linkify>
+            <div className="overflow-hidden whitespace-pre-line break-words">
+              {user.bio}
+            </div>
+          </Linkify>
         </>
       )}
     </div>

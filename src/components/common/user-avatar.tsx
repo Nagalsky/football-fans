@@ -16,14 +16,16 @@ export default function UserAvatar({
   const fallbackText = username ? username.slice(0, 2).toUpperCase() : "??";
 
   return (
-    <Avatar>
+    <Avatar
+      className={cn(
+        "aspect-square size-10 h-fit flex-none rounded-full bg-secondary object-cover",
+        className,
+      )}
+    >
       <AvatarImage
         src={avatar}
         alt={username}
-        className={cn(
-          "aspect-square h-fit flex-none rounded-full bg-secondary object-cover",
-          className,
-        )}
+        className="aspect-square h-fit flex-none rounded-full bg-secondary object-cover"
       />
       <AvatarFallback>{fallbackText}</AvatarFallback>
     </Avatar>

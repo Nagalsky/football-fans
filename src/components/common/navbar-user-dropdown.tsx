@@ -39,7 +39,7 @@ export default function UserDropdown({ className }: UserDropdownProps) {
           <UserAvatar
             avatarUrl={user.avatarUrl}
             username={user.username}
-            className="size-40"
+            className="size-[40px]"
           />
         </button>
       </DropdownMenuTrigger>
