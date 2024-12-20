@@ -2,10 +2,13 @@ import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
 import { LikeInfo } from "@/types/like.type";
 
-export async function GET(
-  req: Request,
-  { params: { postId } }: { params: { postId: string } },
-) {
+export async function GET(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
+
+  const {
+    postId
+  } = params;
+
   try {
     const { user: loggedInUser } = await validateRequest();
 
@@ -47,10 +50,13 @@ export async function GET(
   }
 }
 
-export async function POST(
-  req: Request,
-  { params: { postId } }: { params: { postId: string } },
-) {
+export async function POST(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
+
+  const {
+    postId
+  } = params;
+
   try {
     const { user: loggedInUser } = await validateRequest();
 
@@ -79,10 +85,13 @@ export async function POST(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params: { postId } }: { params: { postId: string } },
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
+
+  const {
+    postId
+  } = params;
+
   try {
     const { user: loggedInUser } = await validateRequest();
 
