@@ -9,6 +9,7 @@ import Link from "next/link";
 import Linkify from "../common/linkify";
 import UserAvatar from "../common/user-avatar";
 import UserTooltip from "../common/user-tooltip";
+import PostBookmarkButton from "./post-bookmark-button";
 import PostDropdownMenu from "./post-dropdown-menu";
 import PostLikeButton from "./post-like-button";
 
@@ -58,13 +59,23 @@ export default function Post({ post }: PostProps) {
         <MediaPreviews attachments={post.attachments} />
       )}
       <hr />
-      <PostLikeButton
-        postId={post.id}
-        initialState={{
-          likes: post._count.likes,
-          isLikedByUser: post.likes.some((like) => like.userId === user.id),
-        }}
-      />
+      <div className="flex justify-between gap-5">
+        <PostLikeButton
+          postId={post.id}
+          initialState={{
+            likes: post._count.likes,
+            isLikedByUser: post.likes.some((like) => like.userId === user.id),
+          }}
+        />
+        <PostBookmarkButton
+          postId={post.id}
+          initialState={{
+            isBookmarkedByUser: post.bookmarks.some(
+              (bookmark) => bookmark.userId === user.id,
+            ),
+          }}
+        />
+      </div>
     </article>
   );
 }
