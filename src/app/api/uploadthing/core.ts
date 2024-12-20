@@ -1,5 +1,6 @@
 import { validateRequest } from "@/auth";
 import prisma from "@/lib/prisma";
+import streamServerClient from "@/lib/stream";
 import { createUploadthing, FileRouter } from "uploadthing/next";
 import { UploadThingError, UTApi } from "uploadthing/server";
 
@@ -11,29 +12,20 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
+
       if (!user) throw new UploadThingError("Unauthorized");
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          avatarUrl:
-            "https://utfs.io/f/cVCVEyt6GiVohTIKrKmF16GrxeNtcq4mpIb0WQKShvEsDdOV",
-        },
-      });
+
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       const oldAvatarUrl = metadata.user.avatarUrl;
 
       if (oldAvatarUrl) {
-        const fileKey = oldAvatarUrl.split("/").pop();
+        const key = oldAvatarUrl.split(
+          `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
+        )[1];
 
-        if (fileKey) {
-          try {
-            await new UTApi().deleteFiles([fileKey]);
-          } catch (error) {
-            console.error("Error deleting old avatar:", error);
-          }
-        }
+        await new UTApi().deleteFiles(key);
       }
 
       const newAvatarUrl = file.url.replace(
@@ -41,12 +33,20 @@ export const fileRouter = {
         `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
       );
 
-      await prisma.user.update({
-        where: { id: metadata.user.id },
-        data: {
-          avatarUrl: newAvatarUrl,
-        },
-      });
+      await Promise.all([
+        prisma.user.update({
+          where: { id: metadata.user.id },
+          data: {
+            avatarUrl: newAvatarUrl,
+          },
+        }),
+        streamServerClient.partialUpdateUser({
+          id: metadata.user.id,
+          set: {
+            image: newAvatarUrl,
+          },
+        }),
+      ]);
 
       return { avatarUrl: newAvatarUrl };
     }),
@@ -71,6 +71,7 @@ export const fileRouter = {
           type: file.type.startsWith("image") ? "IMAGE" : "VIDEO",
         },
       });
+
       return { mediaId: media.id };
     }),
 } satisfies FileRouter;
