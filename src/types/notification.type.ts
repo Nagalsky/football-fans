@@ -29,11 +29,6 @@ export interface FollowerInfo {
   isFollowedByUser: boolean;
 }
 
-export interface LikeInfo {
-  likes: number;
-  isLikedByUser: boolean;
-}
-
 export interface BookmarkInfo {
   isBookmarkedByUser: boolean;
 }
