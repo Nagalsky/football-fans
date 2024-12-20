@@ -1,64 +1,64 @@
-"use client";
+import { validateRequest } from "@/auth";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { Bell, Bookmark, Home, Mail } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { Bookmark, Home, Mail } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import NotificationsButton from "./notifications-button";
 
 interface MenuBarProps {
   className?: string;
 }
 
-export default function MenuBar({ className }: MenuBarProps) {
-  const pathname = usePathname();
+export default async function MenuBar({ className }: MenuBarProps) {
+  const { user } = await validateRequest();
 
-  const isActive = (path: string) => {
-    if (path === "/" && pathname === "/") return true;
-    if (path !== "/" && pathname.startsWith(path)) return true;
-    return false;
-  };
+  if (!user) return null;
 
-  const menuItems = [
-    {
-      href: "/",
-      icon: Home,
-      label: "Home",
+  const unreadNotificationCount = await prisma.notification.count({
+    where: {
+      recipientId: user.id,
+      read: false,
     },
-    {
-      href: "/notifications",
-      icon: Bell,
-      label: "Notifications",
-    },
-    {
-      href: "/messages",
-      icon: Mail,
-      label: "Messages",
-    },
-    {
-      href: "/bookmarks",
-      icon: Bookmark,
-      label: "Bookmarks",
-    },
-  ];
+  });
+
   return (
     <div className={className}>
-      {menuItems.map(({ href, icon: Icon, label }) => (
-        <Button
-          key={href}
-          variant={isActive(href) ? "secondary" : "ghost"}
-          className={cn(
-            "flex items-center justify-start gap-3",
-            isActive(href) && "font-semibold",
-          )}
-          title={label}
-          asChild
-        >
-          <Link href={href}>
-            <Icon />
-            <span className="hidden lg:inline">{label}</span>
-          </Link>
-        </Button>
-      ))}
+      <Button
+        variant="ghost"
+        className="flex items-center justify-start gap-3"
+        title="Home"
+        asChild
+      >
+        <Link href="/">
+          <Home />
+          <span className="hidden lg:inline">Home</span>
+        </Link>
+      </Button>
+      <NotificationsButton
+        initialState={{ unreadCount: unreadNotificationCount }}
+      />
+      <Button
+        variant="ghost"
+        className="flex items-center justify-start gap-3"
+        title="Messages"
+        asChild
+      >
+        <Link href="/messages">
+          <Mail />
+          <span className="hidden lg:inline">Messages</span>
+        </Link>
+      </Button>
+      <Button
+        variant="ghost"
+        className="flex items-center justify-start gap-3"
+        title="Bookmarks"
+        asChild
+      >
+        <Link href="/bookmarks">
+          <Bookmark />
+          <span className="hidden lg:inline">Bookmarks</span>
+        </Link>
+      </Button>
     </div>
   );
 }
